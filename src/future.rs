@@ -30,6 +30,10 @@ impl Future for CountFuture {
   }
 }
 
+pub fn count_future(complete_count: u32) -> CountFuture {
+  CountFuture::new(complete_count)
+}
+
 pub struct HogeFuture {
   state: u8,
 }

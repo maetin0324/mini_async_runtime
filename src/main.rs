@@ -1,12 +1,18 @@
-use mini_async_runtime::{executor::CountExecutor, future::{hoge, CountFuture}};
+use mini_async_runtime::{executor::CountExecutor, future::{count_future, hoge, CountFuture}};
 
 fn main() {
-    use futures::future::join_all;
     let mut ex = CountExecutor::new();
 
+    ex.spawn(Box::pin(count_future(5)));
+
     ex.run(async{
-        CountFuture::new(5).await;
+        count_future(5).await;
         CountFuture::new(10).await;
+
+        async {
+            println!("Hello from async block");
+        }.await;
+
         let futures = vec![
             CountFuture::new(100),
             CountFuture::new(4),
@@ -14,7 +20,8 @@ fn main() {
             CountFuture::new(2),
             CountFuture::new(1),
         ];
-        let rets = join_all(futures).await;
+
+        let rets = futures::future::join_all(futures).await;
         println!("All futures are ready: {:?}", rets);
         // retsを全て足し合わせる
         let sum = rets.iter().fold(0, |acc, x| acc + x);
