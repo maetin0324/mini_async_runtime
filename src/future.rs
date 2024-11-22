@@ -1,6 +1,5 @@
 // use std::task::Waker;
-
-use std::future::Future;
+use std::{future::Future, pin::Pin, task::{Context, Poll}};
 
 pub struct CountFuture {
   count: u32,
@@ -19,7 +18,7 @@ impl CountFuture {
 impl Future for CountFuture {
   type Output = u32;
 
-  fn poll(self: std::pin::Pin<&mut Self>, _cx: &mut std::task::Context<'_>) -> std::task::Poll<Self::Output> {
+  fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
     let this = self.get_mut();
     this.count += 1;
     if this.count < this.complete_count {
@@ -30,5 +29,29 @@ impl Future for CountFuture {
     }
   }
 }
+
+pub struct HogeFuture {
+  state: u8,
+}
+
+impl Future for HogeFuture {
+  type Output = u32;
+
+  fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
+      let this = self.get_mut();
+      match this.state {
+          0 => {
+              this.state = 1;
+              Poll::Ready(42)
+          }
+          _ => panic!("Future polled after completion"),
+      }
+  }
+}
+
+pub fn hoge() -> HogeFuture {
+  HogeFuture { state: 0 }
+}
+
 
 
