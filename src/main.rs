@@ -2,7 +2,7 @@ use mini_async_runtime::{executor::CountExecutor, future::CountFuture};
 
 fn main() {
     use futures::future::join_all;
-    let mut ex = CountExecutor::new();
+    let mut ex = CountExecutor::<()>::new();
 
     ex.run(async{
         CountFuture::new(5).await;
@@ -19,6 +19,5 @@ fn main() {
         // retsを全て足し合わせる
         let sum = rets.iter().fold(0, |acc, x| acc + x);
         println!("Sum of all futures: {}", sum);
-        sum
     });
 }

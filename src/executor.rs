@@ -4,22 +4,28 @@ use std::task::{Context, Poll};
 
 use crate::waker::dummy_waker;
 
-pub struct CountExecutor{
-  run_queue: Vec<Pin<Box<dyn Future<Output = u32>>>>,
+pub struct CountExecutor<T> 
+where
+  T: 'static + std::fmt::Debug,
+{
+  run_queue: Vec<Pin<Box<dyn Future<Output = T>>>>,
 }
 
-impl CountExecutor {
+impl<T> CountExecutor<T> 
+where
+  T: 'static + std::fmt::Debug,
+{
   pub fn new() -> Self {
     CountExecutor {
       run_queue: Vec::new(),
     }
   }
 
-  pub fn spawn(&mut self, future: Pin<Box<dyn Future<Output = u32>>>) {
+  pub fn spawn(&mut self, future: Pin<Box<dyn Future<Output = T>>>) {
     self.run_queue.push(future);
   }
 
-  pub fn run(&mut self, f: impl Future<Output = u32> + 'static) {
+  pub fn run(&mut self, f: impl Future<Output = T> + 'static) {
     let waker = dummy_waker();
     let mut context = Context::from_waker(&waker);
 
@@ -32,7 +38,7 @@ impl CountExecutor {
           self.run_queue.push(future);
         }
         Poll::Ready(value) => {
-          println!("Future is ready with value: {}", value);
+          println!("Future is ready with value: {:?}", value);
         }
       }
     }
